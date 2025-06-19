@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Certificates</title>
+
+    <!-- Fomantic UI CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fomantic-ui/2.9.2/semantic.min.css" />
+
+    <!-- DataTables Semantic UI CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.semanticui.min.css" />
+
+    <!-- Your custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <!-- jQuery (load before DataTables!) -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+
+    <!-- Fomantic UI JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fomantic-ui/2.9.2/semantic.min.js"></script>
+
+    <!-- DataTables JS (Semantic UI integration) -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.semanticui.min.js"></script>
+
+    <!-- Your custom JS -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</head>
+
+<body>
+    <div class="ui container">
+        <h2 class="ui dividing header">Generated Certificates</h2>
+
+        <!-- SCROLLABLE TABLE WRAPPER -->
+        <div style="overflow-x: auto; width: 100%;">
+            <table id="certTable" class="ui celled striped selectable table nowrap" style="width:100%;">
+                <thead>
+                    <tr>
+                        <th>S.No</th>
+                        <th>Name</th>
+                        <th>Link</th>
+                        <th>QR</th>
+                        <th>Email</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in certs %}
+                    <tr>
+                        <td>{{ c.sno }}</td>
+                        <td>{{ c.name }}</td>
+                        <td><a href="{{ c.link }}" target="_blank">{{ c.link }}</a></td>
+                        <td><img src="{{ qrcode(c.link, box_size=3) }}" alt="QR" /></td>
+                        <td>
+                            <form method="post" action="{{ url_for('send_cert', filename=c.filename) }}">
+                                <div class="ui action input">
+                                    <input type="email" name="email" placeholder="Email" required />
+                                    <button type="submit" class="ui primary button">Send</button>
+                                </div>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</body>
+
+</html>

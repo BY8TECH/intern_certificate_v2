@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Upload Excel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Semantic/Fomantic UI -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fomantic-ui/2.9.2/semantic.min.css" />
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fomantic-ui/2.9.2/semantic.min.js"></script>
+
+  <style>
+    body {
+      background-color: #f9f9f9;
+      padding: 2em;
+    }
+
+    .ui.container {
+      max-width: 600px;
+      margin-top: 3em;
+    }
+
+    .dropzone {
+      border: 2px dashed #2185d0;
+      padding: 2em;
+      text-align: center;
+      color: #888;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .dropzone.dragover {
+      background-color: #f1faff;
+      border-color: #21ba45;
+      color: #21ba45;
+    }
+
+    .hidden-input {
+      display: none;
+    }
+
+    #selectedFileName {
+      margin-top: 10px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="ui container">
+    <h2 class="ui teal header">Upload Excel to Generate Certificates</h2>
+
+    <!-- Upload Form -->
+    <form id="uploadForm" class="ui form segment" method="post" enctype="multipart/form-data">
+      <div class="field">
+        <label>Choose or Drag Excel File (.xlsx)</label>
+        <div class="dropzone" id="dropzone">
+          <span id="dropzoneText">Drag & Drop File Here or Click to Upload</span>
+          <input type="file" name="excel" id="excelInput" class="hidden-input" accept=".xlsx" required>
+          <div id="selectedFileName"></div>
+        </div>
+      </div>
+      <button id="generateBtn" class="ui primary button" type="submit" disabled>Generate</button>
+    </form>
+
+    <div class="ui message">
+      <i class="file alternate icon"></i>
+      View already generated: <a href="{{ url_for('certificates') }}">Certificate List</a>
+    </div>
+      <a href="{{ url_for('search_certificate') }}" class="ui button">🔍 Find by ID</a>
+  </div>
+
+  <!-- Toast -->
+  <div id="toastContainer" class="toast"></div>
+
+  <script>
+    const dropzone = document.getElementById('dropzone');
+    const excelInput = document.getElementById('excelInput');
+    const dropzoneText = document.getElementById('dropzoneText');
+    const fileNameDisplay = document.getElementById('selectedFileName');
+    const generateBtn = document.getElementById('generateBtn');
+    const uploadForm = document.getElementById('uploadForm');
+
+    // Click opens file dialog
+    dropzone.addEventListener('click', () => excelInput.click());
+
+    // Drag/drop handlers
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    });
+
+    dropzone.addEventListener('dragleave', () => {
+      dropzone.classList.remove('dragover');
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        const file = files[0];
+        if (validateFile(file)) {
+          excelInput.files = files;
+          updateUIAfterFileSelect(file.name);
+        } else {
+          showToast("Only .xlsx Excel files are allowed", 'red');
+          resetUI();
+        }
+      }
+    });
+
+    excelInput.addEventListener('change', function () {
+      const file = excelInput.files[0];
+      if (file && validateFile(file)) {
+        updateUIAfterFileSelect(file.name);
+      } else {
+        showToast("Only .xlsx Excel files are allowed", 'red');
+        excelInput.value = "";
+        resetUI();
+      }
+    });
+
+    uploadForm.addEventListener('submit', function (e) {
+      const file = excelInput.files[0];
+      if (!file || !validateFile(file)) {
+        e.preventDefault();
+        showToast("Please select a valid .xlsx Excel file", 'red');
+        return false;
+      }
+    });
+
+    function validateFile(file) {
+      return file.name.toLowerCase().endsWith('.xlsx');
+    }
+
+    function updateUIAfterFileSelect(filename) {
+      dropzoneText.textContent = "File Selected ✅";
+      fileNameDisplay.textContent = filename;
+      generateBtn.disabled = false;
+      showToast(`"${filename}" selected`, 'green');
+    }
+
+    function resetUI() {
+      dropzoneText.textContent = "Drag & Drop File Here or Click to Upload";
+      fileNameDisplay.textContent = "";
+      generateBtn.disabled = true;
+    }
+
+    function showToast(message, color = 'teal') {
+      const toast = $(`
+        <div class="ui ${color} message">
+          <i class="close icon"></i>
+          <div class="header">${message}</div>
+        </div>
+      `);
+      $('#toastContainer').append(toast);
+      toast.find('.close').on('click', () => toast.remove());
+      setTimeout(() => toast.fadeOut(500, () => toast.remove()), 3000);
+    }
+
+    // Load backend Flask flash messages
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+    showToast("{{ message }}", "{{ 'green' if category == 'success' else 'red' }}");
+    {% endfor %}
+    {% endwith %}
+  </script>
+
+</body>
+
+</html>

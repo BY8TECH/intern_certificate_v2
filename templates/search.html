@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Search Certificate</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fomantic-ui/2.9.2/semantic.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+  <div class="ui container" style="margin-top: 50px;">
+    <h2 class="ui teal header">Search Certificate by ID</h2>
+    <form method="POST" class="ui form segment">
+      <div class="field">
+        <label>Enter Certificate ID</label>
+        <input type="text" name="cert_id" placeholder="e.g. a1b2c3d4" required>
+      </div>
+      <button class="ui primary button" type="submit">Find Certificate</button>
+    </form>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+    <div class="ui {{ 'red' if category == 'error' else 'green' }} message">{{ message }}</div>
+    {% endfor %}
+    {% endwith %}
+  </div>
+</body>
+</html>

@@ -195,18 +195,35 @@ def send_cert(filename):
     return redirect(url_for('certificates'))
 
 
+# @app.route('/certificate/search', methods=['GET', 'POST'])
+# def search_certificate():
+#     if request.method == 'POST':
+#         input_id = request.form.get('cert_id')
+#         record = collection.find_one({"cert_id": input_id})
+#         filename = record.get("filename") if record else None
+#         if filename:
+#             return redirect(url_for('download', filename=filename))
+#         else:
+#             flash("❌ Invalid Certificate ID", "error")
+#             return redirect(request.url)
+#     return render_template('search.html')
+
 @app.route('/certificate/search', methods=['GET', 'POST'])
 def search_certificate():
+    cert_url = None
     if request.method == 'POST':
         input_id = request.form.get('cert_id')
         record = collection.find_one({"cert_id": input_id})
-        filename = record.get("filename") if record else None
-        if filename:
-            return redirect(url_for('download', filename=filename))
+        if record:
+            filename = record.get("filename")
+            cert_url = url_for('view_certificate', filename=filename)
         else:
             flash("❌ Invalid Certificate ID", "error")
-            return redirect(request.url)
-    return render_template('search.html')
+    return render_template('search.html', cert_url=cert_url)
+
+@app.route('/view/<filename>')
+def view_certificate(filename):
+    return send_from_directory(CERT_FOLDER, filename)
 
 
 if __name__ == '__main__':
